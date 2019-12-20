@@ -8,8 +8,8 @@ app = Flask('app')
 
 @app.route('/req')
 def requirements():
-    f = open('requirements.txt')
-    return '<br>'.join(row for row in f.read().split('\n'))
+    with open('requirements.txt') as f:
+        return '<br>'.join(row for row in f.read().split('\n'))
 
 
 @app.route('/users')
@@ -20,9 +20,9 @@ def users():
 
 @app.route('/average')
 def average():
-    f = open('hw.csv')
-    content = f.read()
-    content = content.split('\n')[1:]
+    with open('hw.csv') as f:
+        content = f.read().split('\n')[1:]
+
     number_of_records = 0
     height_sum = 0
     weight_sum = 0
