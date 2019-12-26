@@ -1,7 +1,12 @@
 import requests
+import random
+import string
 
 from flask import Flask
+from flask import request
 from faker import Faker
+
+from data_base import exec_query
 
 app = Flask('app')
 
@@ -46,6 +51,54 @@ def hello():
     r = requests.get('http://api.open-notify.org/astros.json')
     spacemen_quantity = r.json()
     return f"Spaceman's quantity: {spacemen_quantity['number']}"
+
+
+@app.route('/gen_len')
+def gen_len():
+    length = request.args["len"]
+    if length.isdigit() and 1 <= len(length) <= 100:
+        return ''.join(random.choice(string.ascii_uppercase) for i in range(int(length)))
+    else:
+        return 'Error: string length is not valid'
+
+
+@app.route('/all-customers')
+def all_customers():
+    state = request.args["State"]
+    country = request.args["Country"]
+    query = f'SELECT * FROM Customers WHERE State = \'{state}\' AND Country = \'{country}\';'
+    result = exec_query(query)
+    return str(result)
+
+
+@app.route('/names')
+def names():
+    query = f'SELECT FirstName FROM Customers;'
+    result = str(exec_query(query))
+    list_names = []
+    for i in result.split():
+        if i in list_names:
+            continue
+        else:
+            list_names.append(i)
+    return f' Number of different names: {str(len(list_names))}'
+
+
+@app.route('/profit')
+def total_profit():
+    query = f'SELECT UnitPrice, Quantity FROM invoice_items;'
+    result = str(exec_query(query)).replace('), (', ') (')
+    result = result.replace(', ', ',')
+    result = result.replace('[', '')
+    result = result.replace(']', '')
+    result = result.replace('(', '')
+    result = result.replace(')', '')
+    profit = 0
+    for i in result.split():
+        i = i.split(',')
+        profit = float(i[0]) * int(i[1]) + profit
+
+    return f'Total profit: {str(round(profit, 2))}'
 
 
 if __name__ == '__main__':
